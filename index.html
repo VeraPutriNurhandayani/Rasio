@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EDU RACING - Game Balap Edukasi Interaktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --font-title: 'Fredoka', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+        }
+        body {
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            background: #0f172a;
+        }
+        h1, h2, h3, .font-cartoon {
+            font-family: var(--font-title);
+            letter-spacing: 0.5px;
+        }
+        /* Custom Arcade Buttons */
+        .btn-arcade {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 8px 15px rgba(0,0,0,0.25);
+            transform: translateY(0);
+        }
+        .btn-arcade:active, .btn-arcade.active-press {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 2px 5px rgba(0,0,0,0.2);
+        }
+        /* Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(250, 204, 21, 1); }
+        }
+        .glow-gold {
+            animation: pulseGlow 2s infinite;
+        }
+        /* Splash Screen Smooth Zoom-In Animation (6 seconds) */
+        @keyframes smoothZoomIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.82);
+            }
+            18% {
+                opacity: 1;
+                transform: scale(0.95);
+            }
+            85% {
+                opacity: 1;
+                transform: scale(1.06);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.1);
+            }
+        }
+        .animate-splash-zoom {
+            animation: smoothZoomIn 6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes splashProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        .animate-splash-bar {
+            animation: splashProgress 6s linear forwards;
+        }
+        /* Custom Scrollbar for Review & Setup */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(250, 204, 21, 0.7);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(250, 204, 21, 1);
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen overflow-hidden flex flex-col bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-400">
+
+    <!-- ================= SCREEN 0A: SPLASH SCREEN (INTRO 6 DETIK) ================= -->
+    <div id="splashScreen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 text-center select-none transition-opacity duration-500">
+        <div class="animate-splash-zoom max-w-2xl w-full flex flex-col items-center justify-center space-y-4">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl border-4 border-amber-200 mb-2">
+                <span class="text-4xl sm:text-5xl">🏎️</span>
+            </div>
+            <p class="text-xs sm:text-sm font-extrabold uppercase tracking-[0.25em] text-slate-400">
+                Media Pembelajaran Interaktif
+            </p>
+            <h1 class="font-cartoon text-2xl sm:text-4xl md:text-5xl font-extrabold text-slate-800 tracking-wide leading-tight">
+                Created by<br>
+                <span class="bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                    VERA PUTRI NURHANDAYANI
+                </span>
+            </h1>
+            <div class="w-24 h-1.5 bg-amber-400 rounded-full my-1"></div>
+            <h2 class="font-cartoon text-lg sm:text-2xl md:text-3xl font-bold text-slate-600 tracking-wide">
+                GURU SD UPTD SDN 1 BANDANHURIP
+            </h2>
+            <div class="w-48 sm:w-64 h-2 bg-slate-100 rounded-full overflow-hidden mt-6 border border-slate-200">
+                <div class="h-full bg-gradient-to-r from-amber-400 to-orange-500 animate-splash-bar rounded-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCREEN 0B: POP UP AWAL (WELCOME MODAL) ================= -->
+    <div id="welcomePopupModal" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+        <div class="max-w-lg w-full bg-white rounded-3xl border-4 border-yellow-400 shadow-2xl overflow-hidden animate-float" style="animation-duration: 4s;">
+            <!-- Header Pop Up -->
+            <div class="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 p-5 text-white text-center relative">
+                <div class="w-16 h-16 bg-white rounded-2xl mx-auto flex items-center justify-center text-4xl shadow-lg border-4 border-yellow-300 mb-2">
+                    🏁
+                </div>
+                <h2 class="font-cartoon text-2xl sm:text-3xl font-extrabold drop-shadow">SELAMAT DATANG DI EDU RACING 3D!</h2>
+                <p class="text-xs sm:text-sm text-yellow-100 font-bold mt-1">Game Balap Mobil Edukasi Interaktif</p>
+            </div>
+            <!-- Isi Pop Up -->
+            <div class="p-5 sm:p-6 space-y-4 text-slate-700">
+                <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3.5 text-center">
+                    <p class="text-xs font-extrabold uppercase tracking-wider text-amber-700">Dikembangkan Oleh:</p>
+                    <p class="font-cartoon text-base sm:text-lg font-extrabold text-slate-800 mt-0.5">VERA PUTRI NURHANDAYANI</p>
+                    <p class="text-xs sm:text-sm font-bold text-slate-600">GURU SD UPTD SDN 1 BANDANHURIP</p>
+                </div>
+
+                <div class="space-y-2 text-xs sm:text-sm font-semibold">
+                    <p class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-sky-500"></i> Cara Bermain:
+                    </p>
+                    <ul class="space-y-1.5 pl-1">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-extrabold">1.</span>
+                            <span>Sesuaikan pengaturan materi, jumlah soal, tingkat kesulitan, dan warna mobil kart.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-extrabold">2.</span>
+                            <span>Jawab soal pilihan ganda dengan benar untuk memicu <strong>Turbo Boost</strong> dan menambah skor!</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-extrabold">3.</span>
+                            <span>Taklukkan <strong>3 Checkpoint</strong> di lintasan hingga mencapai <strong>Garis Finis</strong> dan raih Medali Juara!</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <button type="button" onclick="closeWelcomePopup()" class="btn-arcade w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-cartoon text-lg sm:text-xl py-3.5 rounded-2xl border-2 border-emerald-300 flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-circle-check"></i> SIAP, MASUK PENGATURAN!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCREEN 1: SETUP & CONFIGURATION ================= -->
+    <div id="setupScreen" class="w-full h-full overflow-y-auto p-3 sm:p-6 flex items-center justify-center z-30">
+        <div class="max-w-4xl w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-4 border-yellow-400 overflow-hidden my-auto">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 p-4 sm:p-6 text-white relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 opacity-20 text-9xl transform -rotate-12 pointer-events-none">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6 border-4 border-yellow-300 shrink-0">
+                            <span class="text-4xl sm:text-5xl">🏎️</span>
+                        </div>
+                        <div>
+                            <div class="inline-block bg-yellow-300 text-red-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider mb-1 shadow-sm">
+                                Kart Racing 3D Education
+                            </div>
+                            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-wide drop-shadow-md">EDU RACING 3D</h1>
+                            <p class="text-sm sm:text-base text-yellow-100 font-semibold">Balap Cerdas, Kejar Checkpoint & Taklukkan Garis Finis!</p>
+                        </div>
+                    </div>
+                    <button id="btnToggleSoundSetup" type="button" class="btn-arcade bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 border-2 border-white/40 text-sm">
+                        <i class="fa-solid fa-volume-high" id="soundIconSetup"></i>
+                        <span id="soundTextSetup">Suara: ON</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Content -->
+            <form id="setupForm" class="p-4 sm:p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Target Siswa -->
+                    <div class="bg-sky-50 p-3.5 rounded-2xl border-2 border-sky-200">
+                        <label class="block text-sky-900 font-bold text-sm mb-1.5">
+                            <i class="fa-solid fa-user-graduate text-sky-500 mr-1.5"></i>Target Siswa
+                        </label>
+                        <input type="text" id="inputTarget" value="Kelas 6 SD" required
+                            class="w-full px-3.5 py-2 rounded-xl border-2 border-sky-300 focus:border-sky-500 focus:outline-none font-bold text-slate-700 bg-white"
+                            placeholder="Contoh: Kelas 6 SD">
+                    </div>
+
+                    <!-- Mata Pelajaran -->
+                    <div class="bg-purple-50 p-3.5 rounded-2xl border-2 border-purple-200">
+                        <label class="block text-purple-900 font-bold text-sm mb-1.5">
+                            <i class="fa-solid fa-book-open text-purple-500 mr-1.5"></i>Mata Pelajaran
+                        </label>
+                        <select id="inputMapel" class="w-full px-3.5 py-2 rounded-xl border-2 border-purple-300 focus:border-purple-500 focus:outline-none font-bold text-slate-700 bg-white">
+                            <option value="Matematika" selected>Matematika</option>
+                            <option value="IPA / Sains">IPA / Sains</option>
+                            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                            <option value="IPS / Pengetahuan Sosial">IPS / Pengetahuan Sosial</option>
+                            <option value="Kustom / Lainnya">Mata Pelajaran Lainnya</option>
+                        </select>
+                    </div>
+
+                    <!-- Materi Pembelajaran -->
+                    <div class="bg-emerald-50 p-3.5 rounded-2xl border-2 border-emerald-200">
+                        <label class="block text-emerald-900 font-bold text-sm mb-1.5">
+                            <i class="fa-solid fa-shapes text-emerald-500 mr-1.5"></i>Materi Pembelajaran
+                        </label>
+                        <input type="text" id="inputMateri" value="Rasio Bilangan" required
+                            class="w-full px-3.5 py-2 rounded-xl border-2 border-emerald-300 focus:border-emerald-500 focus:outline-none font-bold text-slate-700 bg-white"
+                            placeholder="Contoh: Rasio Bilangan">
+                        <div class="mt-1.5 flex flex-wrap gap-1.5">
+                            <span class="text-xs text-emerald-700 font-semibold">Preset Cepat:</span>
+                            <button type="button" onclick="setQuickTopic('Matematika', 'Rasio Bilangan', 'Siswa dapat menghitung rasio dengan benar')" class="text-xs bg-emerald-200 hover:bg-emerald-300 text-emerald-900 px-2 py-0.5 rounded-lg font-bold transition">Rasio Bilangan</button>
+                            <button type="button" onclick="setQuickTopic('Matematika', 'Pecahan & Desimal', 'Siswa dapat mengubah dan menghitung pecahan')" class="text-xs bg-emerald-200 hover:bg-emerald-300 text-emerald-900 px-2 py-0.5 rounded-lg font-bold transition">Pecahan</button>
+                            <button type="button" onclick="setQuickTopic('Matematika', 'Operasi Hitung Campuran', 'Siswa dapat menyelesaikan operasi hitung bilangan')" class="text-xs bg-emerald-200 hover:bg-emerald-300 text-emerald-900 px-2 py-0.5 rounded-lg font-bold transition">Hitung Campuran</button>
+                        </div>
+                    </div>
+
+                    <!-- Tujuan Pembelajaran -->
+                    <div class="bg-amber-50 p-3.5 rounded-2xl border-2 border-amber-200">
+                        <label class="block text-amber-900 font-bold text-sm mb-1.5">
+                            <i class="fa-solid fa-bullseye text-amber-500 mr-1.5"></i>Tujuan Pembelajaran
+                        </label>
+                        <input type="text" id="inputTujuan" value="Siswa dapat menghitung rasio dengan benar" required
+                            class="w-full px-3.5 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none font-bold text-slate-700 bg-white"
+                            placeholder="Contoh: Siswa dapat menghitung rasio dengan benar">
+                    </div>
+
+                    <!-- Jumlah Soal -->
+                    <div class="bg-rose-50 p-3.5 rounded-2xl border-2 border-rose-200">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-rose-900 font-bold text-sm">
+                                <i class="fa-solid fa-list-ol text-rose-500 mr-1.5"></i>Jumlah Soal
+                            </label>
+                            <span id="labelJumlahSoal" class="bg-rose-500 text-white font-extrabold px-2.5 py-0.5 rounded-lg text-sm">25 Soal</span>
+                        </div>
+                        <input type="range" id="inputJumlahSoal" min="5" max="40" step="1" value="25"
+                            class="w-full accent-rose-500 cursor-pointer h-2.5 bg-rose-200 rounded-lg">
+                        <div class="flex justify-between text-xs text-rose-700 font-semibold mt-1">
+                            <span>5 Soal (Cepat)</span>
+                            <span>15 Soal</span>
+                            <span>25 Soal (Standar)</span>
+                            <span>40 Soal (Maraton)</span>
+                        </div>
+                    </div>
+
+                    <!-- Tingkat Kesulitan -->
+                    <div class="bg-indigo-50 p-3.5 rounded-2xl border-2 border-indigo-200">
+                        <label class="block text-indigo-900 font-bold text-sm mb-1.5">
+                            <i class="fa-solid fa-gauge-high text-indigo-500 mr-1.5"></i>Tingkat Kesulitan
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" data-diff="mudah" class="diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-emerald-500 text-white border-emerald-600 flex items-center justify-center gap-1">
+                                🌱 Mudah
+                            </button>
+                            <button type="button" data-diff="sedang" class="diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-white text-slate-600 border-slate-300 flex items-center justify-center gap-1">
+                                ⚡ Sedang
+                            </button>
+                            <button type="button" data-diff="sulit" class="diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-white text-slate-600 border-slate-300 flex items-center justify-center gap-1">
+                                🔥 Sulit
+                            </button>
+                        </div>
+                        <input type="hidden" id="inputDifficulty" value="mudah">
+                    </div>
+                </div>
+
+                <!-- Custom Material / Question Input Accordion (For Custom Non-Math or Teacher Custom Questions) -->
+                <div id="customMaterialBox" class="bg-slate-50 rounded-2xl border-2 border-slate-300 p-3.5 transition-all">
+                    <div class="flex items-center justify-between cursor-pointer" onclick="toggleCustomMaterial()">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-circle-plus text-indigo-600"></i>
+                            <span class="font-bold text-slate-800 text-sm">Input Materi Tambahan / Soal Kustom Guru (Opsional)</span>
+                        </div>
+                        <span id="customBoxToggleText" class="text-xs font-bold text-indigo-600 bg-indigo-100 px-2.5 py-1 rounded-lg">Buka Panel ▼</span>
+                    </div>
+                    <div id="customMaterialContent" class="hidden mt-3 space-y-2 border-t border-slate-200 pt-3">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Sistem memiliki <strong>Generator Dinamis & Bank Soal Lokal otomatis</strong> untuk <em>Rasio Bilangan</em>, <em>Pecahan</em>, dan <em>Aritmatika</em>. Jika Anda memasukkan topik di luar bank soal (misal: Sejarah, Biologi, dll.), tempelkan ringkasan kalimat fakta atau daftar soal kustom di bawah ini agar game tidak mengarang materi sembarangan:
+                        </p>
+                        <textarea id="inputCustomText" rows="4"
+                            class="w-full p-3 rounded-xl border-2 border-slate-300 text-xs sm:text-sm font-semibold text-slate-700 focus:border-indigo-500 focus:outline-none"
+                            placeholder="Format Soal Kustom (1 baris 1 soal):&#10;Pertanyaan | Jawaban Benar | Pilihan Salah 1 | Pilihan Salah 2 | Pilihan Salah 3 | Penjelasan&#10;&#10;Atau tempelkan paragraf materi bacaan (minimal 5 kalimat informatif) untuk diubah menjadi kuis otomatis."></textarea>
+                    </div>
+                </div>
+
+                <!-- Alert Banner for Unrecognized Topic without Custom Material -->
+                <div id="topicWarningModal" class="hidden bg-amber-100 border-l-4 border-amber-500 text-amber-900 p-4 rounded-xl text-sm space-y-2">
+                    <div class="flex items-start gap-2.5">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl mt-0.5"></i>
+                        <div>
+                            <h4 class="font-extrabold text-base">Materi Membutuhkan Teks Tambahan!</h4>
+                            <p id="topicWarningText" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                            <div class="mt-2.5 flex flex-wrap gap-2">
+                                <button type="button" onclick="useDefaultRatioTopic()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow">
+                                    Gunakan Materi "Rasio Bilangan" (Kelas 6 SD)
+                                </button>
+                                <button type="button" onclick="openCustomMaterialAndFocus()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow">
+                                    Isi Materi Tambahan Sendiri
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Selection & Action Button -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs sm:text-sm font-extrabold text-slate-700">Pilih Warna Kart:</span>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="selectCarColor('#ef4444', '#b91c1c', this)" class="car-color-btn w-9 h-9 rounded-full bg-red-500 border-4 border-yellow-400 shadow-md scale-110 transition"></button>
+                            <button type="button" onclick="selectCarColor('#3b82f6', '#1d4ed8', this)" class="car-color-btn w-9 h-9 rounded-full bg-blue-500 border-2 border-white shadow-md transition"></button>
+                            <button type="button" onclick="selectCarColor('#10b981', '#047857', this)" class="car-color-btn w-9 h-9 rounded-full bg-emerald-500 border-2 border-white shadow-md transition"></button>
+                            <button type="button" onclick="selectCarColor('#a855f7', '#7e22ce', this)" class="car-color-btn w-9 h-9 rounded-full bg-purple-500 border-2 border-white shadow-md transition"></button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-arcade w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-cartoon text-xl sm:text-2xl px-8 py-3.5 rounded-2xl border-2 border-green-300 flex items-center justify-center gap-3 cursor-pointer">
+                        <i class="fa-solid fa-play"></i> MULAI BALAPAN!
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= SCREEN 2: ACTIVE RACING GAMEPLAY ================= -->
+    <div id="gameScreen" class="hidden relative w-full h-full overflow-hidden select-none">
+        <!-- 3D / Pseudo-3D Racing Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- TOP HUD: Score, Progress Track, Checkpoints, Timer, Speed -->
+        <div class="absolute top-0 left-0 right-0 p-2 sm:p-4 pointer-events-none flex flex-col gap-2 z-20">
+            <!-- Top Row Stats -->
+            <div class="flex flex-wrap items-center justify-between gap-2 max-w-6xl mx-auto w-full">
+                <!-- Left: Player & Topic Pill -->
+                <div class="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border-2 border-sky-400 shadow-lg pointer-events-auto">
+                    <span class="text-xl">🏎️</span>
+                    <div class="leading-tight">
+                        <div id="hudTopic" class="font-extrabold text-xs sm:text-sm text-yellow-300 truncate max-w-[140px] sm:max-w-[220px]">Rasio Bilangan</div>
+                        <div id="hudTargetDiff" class="text-[10px] sm:text-xs text-sky-200 font-bold">Kelas 6 SD • Mudah</div>
+                    </div>
+                </div>
+
+                <!-- Center: Score, Question Counter & Streak -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="bg-slate-900/85 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border-2 border-yellow-400 shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-star text-yellow-400 text-base sm:text-lg animate-spin" style="animation-duration: 6s;"></i>
+                        <div>
+                            <div class="text-[10px] uppercase text-yellow-200 font-bold leading-none">Skor</div>
+                            <div id="hudScore" class="font-cartoon text-base sm:text-xl text-white leading-tight">0</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/85 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border-2 border-emerald-400 shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question text-emerald-400 text-base sm:text-lg"></i>
+                        <div>
+                            <div class="text-[10px] uppercase text-emerald-200 font-bold leading-none">Soal</div>
+                            <div id="hudQuestionNum" class="font-cartoon text-base sm:text-xl text-white leading-tight">1 / 25</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/85 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border-2 border-orange-400 shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-orange-400 text-base sm:text-lg"></i>
+                        <div>
+                            <div class="text-[10px] uppercase text-orange-200 font-bold leading-none">Waktu</div>
+                            <div id="hudTimer" class="font-cartoon text-base sm:text-xl text-white leading-tight">00:00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Speedometer & Controls -->
+                <div class="flex items-center gap-2 pointer-events-auto">
+                    <div class="bg-slate-900/85 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border-2 border-cyan-400 shadow-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-cyan-300"></i>
+                        <span id="hudSpeed" class="font-cartoon text-sm sm:text-lg text-cyan-300">120</span>
+                        <span class="text-[10px] font-bold text-cyan-100">KM/H</span>
+                    </div>
+                    <button id="btnSoundGame" onclick="toggleSound()" class="btn-arcade bg-slate-800/90 hover:bg-slate-700 text-white w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-slate-500 flex items-center justify-center" title="Suara">
+                        <i id="soundIconGame" class="fa-solid fa-volume-high text-sm"></i>
+                    </button>
+                    <button onclick="confirmBackToMenu()" class="btn-arcade bg-red-600/90 hover:bg-red-500 text-white w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-red-300 flex items-center justify-center" title="Pengaturan Ulang">
+                        <i class="fa-solid fa-gear text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Race Progress Track Bar with 3 Checkpoints & Finish Line -->
+            <div class="max-w-4xl mx-auto w-full bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-white/30 shadow-lg">
+                <div class="relative flex items-center justify-between">
+                    <!-- Background Track Line -->
+                    <div class="absolute left-0 right-0 h-3 bg-slate-700 rounded-full overflow-hidden">
+                        <div id="hudProgressBar" class="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+
+                    <!-- Start Node -->
+                    <div class="relative z-10 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] font-extrabold text-white shadow">
+                        S
+                    </div>
+
+                    <!-- Checkpoint 1 (25%) -->
+                    <div id="cpNode1" class="relative z-10 px-2 py-0.5 rounded-full bg-slate-700 border-2 border-slate-400 text-[10px] font-extrabold text-slate-200 flex items-center gap-1 transition-all">
+                        <i class="fa-solid fa-flag"></i> CP 1
+                    </div>
+
+                    <!-- Checkpoint 2 (50%) -->
+                    <div id="cpNode2" class="relative z-10 px-2 py-0.5 rounded-full bg-slate-700 border-2 border-slate-400 text-[10px] font-extrabold text-slate-200 flex items-center gap-1 transition-all">
+                        <i class="fa-solid fa-flag"></i> CP 2
+                    </div>
+
+                    <!-- Checkpoint 3 (75%) -->
+                    <div id="cpNode3" class="relative z-10 px-2 py-0.5 rounded-full bg-slate-700 border-2 border-slate-400 text-[10px] font-extrabold text-slate-200 flex items-center gap-1 transition-all">
+                        <i class="fa-solid fa-flag"></i> CP 3
+                    </div>
+
+                    <!-- Finish Line (100%) -->
+                    <div id="finishNode" class="relative z-10 px-2 py-0.5 rounded-full bg-yellow-400 border-2 border-white text-[10px] font-extrabold text-slate-900 flex items-center gap-1 shadow">
+                        🏁 FINIS
+                    </div>
+
+                    <!-- Moving Mini Kart Icon -->
+                    <div id="hudMiniKart" class="absolute -top-3.5 transition-all duration-300 z-20 text-xl filter drop-shadow" style="left: 0%;">
+                        🏎️
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUESTION & INTERACTIVE ANSWER PANEL -->
+        <div id="questionOverlay" class="absolute inset-x-0 bottom-2 sm:bottom-5 flex flex-col items-center justify-end p-2 sm:p-4 pointer-events-none z-20">
+            <div class="max-w-3xl w-full bg-white/95 backdrop-blur-md rounded-3xl border-4 border-sky-400 shadow-2xl p-3 sm:p-5 pointer-events-auto transition-all">
+                <!-- Question Header Badge -->
+                <div class="flex items-center justify-between mb-2">
+                    <span id="qBadge" class="bg-sky-100 text-sky-800 text-xs font-extrabold px-3 py-1 rounded-full border border-sky-300">
+                        Soal #1 • Rasio Bilangan
+                    </span>
+                    <span id="streakBadge" class="hidden bg-orange-500 text-white text-xs font-extrabold px-3 py-1 rounded-full animate-bounce">
+                        🔥 Kombo Turbo x2!
+                    </span>
+                </div>
+
+                <!-- Question Prompt -->
+                <p id="qText" class="text-slate-800 font-extrabold text-base sm:text-xl md:text-2xl text-center my-2 sm:my-3 leading-snug">
+                    Memuat pertanyaan...
+                </p>
+
+                <!-- 4 Multiple Choice Buttons -->
+                <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-3">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <!-- Mobile / Interactive Board Lane Steering Controls -->
+                <div class="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 font-bold">
+                    <button type="button" onclick="steerLane(-1)" class="btn-arcade bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Geser Kiri
+                    </button>
+                    <span class="hidden sm:inline text-[11px] text-slate-400">Gunakan Tombol Panah / Sentuh Pilihan Jawaban untuk Turbo!</span>
+                    <button type="button" onclick="steerLane(1)" class="btn-arcade bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-300 flex items-center gap-1.5">
+                        Geser Kanan <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WRONG ANSWER / EXPLANATION MODAL -->
+        <div id="explanationModal" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 z-40">
+            <div class="max-w-lg w-full bg-white rounded-3xl border-4 border-rose-400 shadow-2xl overflow-hidden animate-float" style="animation-duration: 4s;">
+                <div id="expHeader" class="bg-gradient-to-r from-rose-500 to-orange-500 p-4 text-white flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
+                        💡
+                    </div>
+                    <div>
+                        <h3 id="expTitle" class="font-cartoon text-xl">Oops! Kurang Tepat</h3>
+                        <p class="text-xs text-rose-100 font-semibold">Yuk pahami pembahasannya agar di tikungan berikutnya makin cepat!</p>
+                    </div>
+                </div>
+                <div class="p-5 space-y-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-600 font-semibold" id="expQuestion"></div>
+                    <div class="flex items-center gap-2 bg-emerald-50 border-2 border-emerald-300 p-3 rounded-xl">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                        <div>
+                            <div class="text-[11px] font-bold text-emerald-700 uppercase">Jawaban yang Benar:</div>
+                            <div id="expCorrectAns" class="font-extrabold text-emerald-950 text-base"></div>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 border-2 border-amber-300 p-3.5 rounded-2xl">
+                        <div class="text-xs font-extrabold text-amber-800 uppercase mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chalkboard-user"></i> Penjelasan Mudah:
+                        </div>
+                        <p id="expText" class="text-slate-700 text-sm sm:text-base font-bold leading-relaxed"></p>
+                    </div>
+                    <button type="button" onclick="closeExplanationAndContinue()" class="btn-arcade w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-cartoon text-lg py-3 rounded-2xl border-2 border-sky-300 mt-2">
+                        MENGERTI & LANJUT BALAPAN! 🏎️💨
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHECKPOINT BANNER POPUP -->
+        <div id="checkpointBanner" class="hidden fixed top-28 inset-x-0 flex justify-center pointer-events-none z-30">
+            <div class="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-slate-900 font-cartoon px-6 py-3 rounded-full border-4 border-white shadow-2xl flex items-center gap-3 transform scale-110">
+                <span class="text-2xl">🚩</span>
+                <div>
+                    <div id="cpBannerTitle" class="text-lg sm:text-2xl font-extrabold leading-none">CHECKPOINT 1 TERCAPAI!</div>
+                    <div id="cpBannerSub" class="text-xs font-bold text-slate-800">Bonus +150 Poin & Turbo Boost!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIRM RESET MODAL -->
+        <div id="confirmResetModal" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div class="max-w-sm w-full bg-white rounded-3xl border-4 border-amber-400 p-5 text-center space-y-4 shadow-2xl">
+                <div class="text-5xl">🛑</div>
+                <h3 class="font-cartoon text-2xl text-slate-800">Kembali ke Pengaturan?</h3>
+                <p class="text-sm text-slate-600 font-semibold">Progres balapan saat ini akan dihentikan dan kamu akan kembali ke formulir pengaturan awal.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirmReset()" class="btn-arcade flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl">Batal</button>
+                    <button onclick="backToSetupScreen()" class="btn-arcade flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl">Ya, Keluar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCREEN 3: FINISH & EVALUATION RESULTS ================= -->
+    <div id="resultScreen" class="hidden w-full h-full overflow-y-auto p-3 sm:p-6 flex items-center justify-center z-30">
+        <div class="max-w-4xl w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-4 border-yellow-400 overflow-hidden my-auto">
+            <!-- Top Trophy Banner -->
+            <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6 text-white text-center relative overflow-hidden">
+                <div id="medalEmoji" class="text-6xl sm:text-7xl mb-2 animate-bounce inline-block filter drop-shadow-lg">🥇</div>
+                <div id="medalTitle" class="inline-block bg-yellow-300 text-slate-900 font-extrabold px-4 py-1 rounded-full text-xs sm:text-sm uppercase tracking-wider mb-1 shadow">
+                    Medali Emas • Juara Lintasan!
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-cartoon drop-shadow">GARIS FINIS TERCAPAI!</h2>
+                <p id="resultSummaryMeta" class="text-xs sm:text-sm text-purple-100 font-semibold mt-1"></p>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-5">
+                <!-- 4 Key Metrics Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-3.5 text-center">
+                        <div class="text-xs font-bold text-yellow-700 uppercase">Total Skor</div>
+                        <div id="resScore" class="font-cartoon text-2xl sm:text-3xl text-yellow-900 mt-1">0</div>
+                    </div>
+                    <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 text-center">
+                        <div class="text-xs font-bold text-emerald-700 uppercase">Akurasi Jawaban</div>
+                        <div id="resAccuracy" class="font-cartoon text-2xl sm:text-3xl text-emerald-900 mt-1">0%</div>
+                        <div id="resCorrectRatio" class="text-[11px] font-bold text-emerald-700">0 dari 25 Benar</div>
+                    </div>
+                    <div class="bg-sky-50 border-2 border-sky-300 rounded-2xl p-3.5 text-center">
+                        <div class="text-xs font-bold text-sky-700 uppercase">Waktu Tempuh</div>
+                        <div id="resTime" class="font-cartoon text-2xl sm:text-3xl text-sky-900 mt-1">00:00</div>
+                    </div>
+                    <div class="bg-purple-50 border-2 border-purple-300 rounded-2xl p-3.5 text-center">
+                        <div class="text-xs font-bold text-purple-700 uppercase">Checkpoint</div>
+                        <div id="resCheckpoints" class="font-cartoon text-2xl sm:text-3xl text-purple-900 mt-1">3 / 3</div>
+                    </div>
+                </div>
+
+                <!-- Answer Discussion / Review List -->
+                <div class="bg-slate-50 rounded-2xl border-2 border-slate-200 p-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <h3 class="font-cartoon text-lg sm:text-xl text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Pembahasan Jawaban Lengkap
+                        </h3>
+                        <div class="flex gap-1.5">
+                            <button onclick="filterReview('all')" id="btnFilterAll" class="text-xs font-bold px-3 py-1 rounded-lg bg-indigo-600 text-white">Semua</button>
+                            <button onclick="filterReview('wrong')" id="btnFilterWrong" class="text-xs font-bold px-3 py-1 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300">Perlu Evaluasi</button>
+                            <button onclick="filterReview('correct')" id="btnFilterCorrect" class="text-xs font-bold px-3 py-1 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300">Sudah Benar</button>
+                        </div>
+                    </div>
+
+                    <div id="reviewContainer" class="max-h-72 overflow-y-auto space-y-2.5 pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
+                    <button onclick="backToSetupScreen()" class="btn-arcade bg-slate-200 hover:bg-slate-300 text-slate-800 font-cartoon text-lg px-6 py-3 rounded-2xl border-2 border-slate-300 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> Ubah Pengaturan / Materi
+                    </button>
+                    <button onclick="replaySameSettings()" class="btn-arcade bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-cartoon text-lg px-8 py-3 rounded-2xl border-2 border-emerald-300 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Main Lagi (Soal Baru!)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT GAME ENGINE & QUESTION GENERATOR ================= -->
+    <script>
+        /********************************************************************
+         * 1. SOUND SYNTHESIS ENGINE (Web Audio API - No External Assets)
+         ********************************************************************/
+        const SoundFX = {
+            enabled: true,
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playTone(freq, type, duration, vol = 0.12, slideTo = null) {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    if (slideTo) {
+                        osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+                    }
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            },
+            correct() {
+                this.playTone(523.25, 'sine', 0.12, 0.15);
+                setTimeout(() => this.playTone(659.25, 'sine', 0.12, 0.15), 90);
+                setTimeout(() => this.playTone(783.99, 'triangle', 0.28, 0.18, 1046.5), 180);
+            },
+            wrong() {
+                this.playTone(300, 'sawtooth', 0.18, 0.12, 220);
+                setTimeout(() => this.playTone(220, 'sawtooth', 0.3, 0.12, 150), 160);
+            },
+            checkpoint() {
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((n, i) => setTimeout(() => this.playTone(n, 'triangle', 0.18, 0.16), i * 80));
+            },
+            finish() {
+                const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+                notes.forEach((n, i) => setTimeout(() => this.playTone(n, 'square', 0.2, 0.12), i * 110));
+            },
+            click() {
+                this.playTone(600, 'sine', 0.05, 0.08);
+            }
+        };
+
+        function toggleSound() {
+            SoundFX.enabled = !SoundFX.enabled;
+            const iconSetup = document.getElementById('soundIconSetup');
+            const textSetup = document.getElementById('soundTextSetup');
+            const iconGame = document.getElementById('soundIconGame');
+            const cls = SoundFX.enabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+            if (iconSetup) iconSetup.className = cls;
+            if (iconGame) iconGame.className = cls + ' text-sm';
+            if (textSetup) textSetup.textContent = SoundFX.enabled ? 'Suara: ON' : 'Suara: OFF';
+            if (SoundFX.enabled) SoundFX.click();
+        }
+
+        document.getElementById('btnToggleSoundSetup').addEventListener('click', toggleSound);
+
+        /********************************************************************
+         * 2. MATH & RATIO HELPER UTILITIES
+         ********************************************************************/
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b) {
+                let t = b;
+                b = a % b;
+                a = t;
+            }
+            return a || 1;
+        }
+
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        // Build 4 unique multiple choice options around a correct string answer
+        function buildUniqueOptions(correctStr, candidates) {
+            const set = new Set([String(correctStr).trim()]);
+            for (const c of candidates) {
+                const str = String(c).trim();
+                if (str && !set.has(str)) {
+                    set.add(str);
+                }
+                if (set.size === 4) break;
+            }
+            // Fallback padding if needed
+            let fallbackIdx = 1;
+            while (set.size < 4) {
+                set.add(`${correctStr} (${fallbackIdx++})`);
+            }
+            return shuffleArray(Array.from(set));
+        }
+
+        /********************************************************************
+         * 3. CURATED LOCAL BANK + DYNAMIC GENERATOR FOR "RASIO BILANGAN"
+         ********************************************************************/
+        const CuratedRatioBank = {
+            mudah: [
+                {
+                    q: "Di dalam keranjang terdapat 12 apel merah dan 18 apel hijau. Berapakah rasio paling sederhana antara apel merah dan apel hijau?",
+                    ans: "2 : 3",
+                    wrongs: ["3 : 2", "4 : 6", "1 : 2"],
+                    exp: "Bagilah kedua bilangan dengan FPB dari 12 dan 18 yaitu 6. Maka 12 ÷ 6 = 2 dan 18 ÷ 6 = 3. Jadi rasionya adalah 2 : 3."
+                },
+                {
+                    q: "Kelas 6A memiliki 15 siswa laki-laki dan 20 siswa perempuan. Rasio siswa laki-laki terhadap siswa perempuan adalah...",
+                    ans: "3 : 4",
+                    wrongs: ["4 : 3", "5 : 4", "3 : 5"],
+                    exp: "15 dan 20 sama-sama dibagi 5. Hasilnya 15 ÷ 5 = 3 dan 20 ÷ 5 = 4. Jadi rasionya 3 : 4."
+                },
+                {
+                    q: "Rasio kelereng Budi dan Andi adalah 2 : 5. Jika Budi memiliki 8 kelereng, berapa banyak kelereng Andi?",
+                    ans: "20 kelereng",
+                    wrongs: ["16 kelereng", "10 kelereng", "24 kelereng"],
+                    exp: "1 bagian rasio Budi = 8 ÷ 2 = 4 kelereng. Maka kelereng Andi (5 bagian) = 5 × 4 = 20 kelereng."
+                },
+                {
+                    q: "Untuk membuat 1 loyang kue dibutuhkan 2 butir telur dan 6 sendok tepung. Bentuk rasio paling sederhana dari telur terhadap tepung adalah...",
+                    ans: "1 : 3",
+                    wrongs: ["3 : 1", "2 : 3", "1 : 4"],
+                    exp: "Bagi kedua angka dengan 2: (2 ÷ 2) : (6 ÷ 2) = 1 : 3."
+                },
+                {
+                    q: "Manakah di bawah ini yang memiliki rasio senilai dengan 3 : 5?",
+                    ans: "9 : 15",
+                    wrongs: ["6 : 15", "9 : 10", "12 : 25"],
+                    exp: "Kalikan kedua suku pada rasio 3 : 5 dengan 3, sehingga diperoleh (3×3) : (5×3) = 9 : 15."
+                },
+                {
+                    q: "Di tempat parkir ada 10 sepeda dan 30 sepeda motor. Rasio jumlah sepeda terhadap seluruh kendaraan adalah...",
+                    ans: "1 : 4",
+                    wrongs: ["1 : 3", "3 : 1", "2 : 5"],
+                    exp: "Total kendaraan = 10 + 30 = 40. Rasio sepeda terhadap total = 10 : 40. Disederhanakan (dibagi 10) menjadi 1 : 4."
+                }
+            ],
+            sedang: [
+                {
+                    q: "Perbandingan uang saku Rina dan Sinta adalah 3 : 5. Jika jumlah uang mereka berdua adalah Rp 40.000, berapakah uang Rina?",
+                    ans: "Rp 15.000",
+                    wrongs: ["Rp 25.000", "Rp 12.000", "Rp 20.000"],
+                    exp: "Jumlah bagian rasio = 3 + 5 = 8. Nilai 1 bagian = 40.000 ÷ 8 = 5.000. Uang Rina (3 bagian) = 3 × Rp 5.000 = Rp 15.000."
+                },
+                {
+                    q: "Rasio umur Kakak dan Adik adalah 7 : 4. Jika selisih umur mereka adalah 9 tahun, berapakah umur Kakak sekarang?",
+                    ans: "21 tahun",
+                    wrongs: ["12 tahun", "28 tahun", "18 tahun"],
+                    exp: "Selisih bagian rasio = 7 - 4 = 3 bagian. Karena selisihnya 9 tahun, 1 bagian = 9 ÷ 3 = 3 tahun. Umur Kakak = 7 × 3 = 21 tahun."
+                },
+                {
+                    q: "Sebuah mobil balap memerlukan 4 liter bensin untuk menempuh jarak 48 km. Berapa jarak yang dapat ditempuh dengan 7 liter bensin?",
+                    ans: "84 km",
+                    wrongs: ["72 km", "96 km", "78 km"],
+                    exp: "1 liter bensin dapat menempuh 48 ÷ 4 = 12 km. Dengan 7 liter, jarak tempuhnya adalah 7 × 12 km = 84 km."
+                },
+                {
+                    q: "Rasio pita merah dan pita biru adalah 4 : 7. Jika panjang pita biru adalah 35 meter, berapakah total panjang kedua pita tersebut?",
+                    ans: "55 meter",
+                    wrongs: ["20 meter", "45 meter", "60 meter"],
+                    exp: "1 bagian = 35 ÷ 7 = 5 meter. Total bagian = 4 + 7 = 11 bagian. Maka total panjang pita = 11 × 5 = 55 meter."
+                },
+                {
+                    q: "Perbandingan berat beras di Karung A dan Karung B adalah 5 : 8. Jika selisih berat kedua karung adalah 15 kg, berapa berat Karung A?",
+                    ans: "25 kg",
+                    wrongs: ["40 kg", "20 kg", "30 kg"],
+                    exp: "Selisih rasio = 8 - 5 = 3 bagian = 15 kg. Jadi 1 bagian = 5 kg. Berat Karung A = 5 × 5 kg = 25 kg."
+                }
+            ],
+            sulit: [
+                {
+                    q: "Jarak antara dua kota pada peta adalah 6 cm. Jika skala peta tersebut adalah 1 : 250.000, berapakah jarak sebenarnya kedua kota itu?",
+                    ans: "15 km",
+                    wrongs: ["1,5 km", "25 km", "150 km"],
+                    exp: "Jarak sebenarnya = 6 × 250.000 cm = 1.500.000 cm. Karena 1 km = 100.000 cm, maka 1.500.000 ÷ 100.000 = 15 km."
+                },
+                {
+                    q: "Rasio kelereng Adi : Beni adalah 2 : 3, sedangkan rasio Beni : Ciko adalah 4 : 5. Berapakah rasio kelereng Adi : Beni : Ciko?",
+                    ans: "8 : 12 : 15",
+                    wrongs: ["2 : 4 : 5", "6 : 12 : 15", "8 : 10 : 15"],
+                    exp: "Samakan angka milik Beni (KPK dari 3 dan 4 adalah 12). Adi : Beni = (2×4):(3×4) = 8:12. Beni : Ciko = (4×3):(5×3) = 12:15. Jadi Adi : Beni : Ciko = 8 : 12 : 15."
+                },
+                {
+                    q: "Rasio panjang dan lebar sebuah taman berbentuk persegi panjang adalah 5 : 3. Jika keliling taman tersebut 64 meter, berapakah luas taman itu?",
+                    ans: "240 m²",
+                    wrongs: ["120 m²", "192 m²", "300 m²"],
+                    exp: "Panjang + Lebar = Keliling ÷ 2 = 64 ÷ 2 = 32 m. Jumlah rasio = 5 + 3 = 8 bagian, maka 1 bagian = 32 ÷ 8 = 4 m. Panjang = 5×4 = 20 m, Lebar = 3×4 = 12 m. Luas = 20 × 12 = 240 m²."
+                },
+                {
+                    q: "Dalam sebuah campuran minuman, rasio sirup, susu, dan air adalah 1 : 3 : 5. Jika total minuman yang dibuat adalah 1.800 ml, berapa ml susu yang digunakan?",
+                    ans: "600 ml",
+                    wrongs: ["200 ml", "900 ml", "450 ml"],
+                    exp: "Total bagian rasio = 1 + 3 + 5 = 9 bagian. 1 bagian = 1.800 ÷ 9 = 200 ml. Volume susu (3 bagian) = 3 × 200 ml = 600 ml."
+                }
+            ]
+        };
+
+        // Dynamic generator for Ratio questions so any count (up to 40+) is unique & accurate
+        function generateDynamicRatioQuestion(difficulty, index) {
+            const items = [
+                ["buku cerita", "buku komik"],
+                ["mobil merah", "mobil biru"],
+                ["jeruk", "mangga"],
+                ["pensil", "pulpen"],
+                ["kelereng biru", "kelereng kuning"],
+                ["siswa putra", "siswa putri"]
+            ];
+            const names = [
+                ["Budi", "Andi"],
+                ["Siti", "Lani"],
+                ["Riko", "Dion"],
+                ["Nisa", "Putri"],
+                ["Edo", "Beni"]
+            ];
+            const pairItem = items[index % items.length];
+            const pairName = names[index % names.length];
+
+            // Pick coprime base ratio a : b
+            let a = randInt(1, 5);
+            let b = randInt(2, 7);
+            while (gcd(a, b) !== 1 || a === b) {
+                a = randInt(1, 6);
+                b = randInt(2, 8);
+            }
+
+            if (difficulty === 'mudah') {
+                const mode = index % 3;
+                const k = randInt(2, 6);
+                const valA = a * k;
+                const valB = b * k;
+
+                if (mode === 0) {
+                    const ans = `${a} : ${b}`;
+                    return {
+                        q: `Di ruang kelas terdapat ${valA} ${pairItem[0]} dan ${valB} ${pairItem[1]}. Berapakah rasio paling sederhana antara ${pairItem[0]} dan ${pairItem[1]}?`,
+                        options: buildUniqueOptions(ans, [`${b} : ${a}`, `${a + 1} : ${b}`, `${a} : ${b + 1}`, `${valA} : ${b}`]),
+                        answer: ans,
+                        explanation: `Kedua bilangan (${valA} dan ${valB}) sama-sama dibagi dengan FPB-nya yaitu ${k}. Maka ${valA} ÷ ${k} = ${a} dan ${valB} ÷ ${k} = ${b}. Jadi rasionya ${a} : ${b}.`
+                    };
+                } else if (mode === 1) {
+                    const ans = `${valB}`;
+                    return {
+                        q: `Rasio ${pairItem[0]} dan ${pairItem[1]} adalah ${a} : ${b}. Jika terdapat ${valA} ${pairItem[0]}, berapakah jumlah ${pairItem[1]}?`,
+                        options: buildUniqueOptions(ans, [`${valB + a}`, `${valA + b}`, `${b * (k + 1)}`, `${Math.max(1, valB - k)}`]),
+                        answer: ans,
+                        explanation: `1 bagian rasio bernilai ${valA} ÷ ${a} = ${k}. Maka jumlah ${pairItem[1]} (${b} bagian) adalah ${b} × ${k} = ${valB}.`
+                    };
+                } else {
+                    const ans = `${valA} : ${valB}`;
+                    return {
+                        q: `Manakah rasio di bawah ini yang senilai dengan rasio ${a} : ${b}?`,
+                        options: buildUniqueOptions(ans, [`${valA + 1} : ${valB}`, `${valB} : ${valA}`, `${a * k} : ${b * (k + 1)}`, `${a + k} : ${b + k}`]),
+                        answer: ans,
+                        explanation: `Rasio yang senilai diperoleh dengan mengalikan kedua suku dengan bilangan yang sama (${k}): (${a}×${k}) : (${b}×${k}) = ${valA} : ${valB}.`
+                    };
+                }
+            } else if (difficulty === 'sedang') {
+                const mode = index % 3;
+                const k = randInt(3, 9);
+                const valA = a * k;
+                const valB = b * k;
+                const total = valA + valB;
+                const diff = Math.abs(valA - valB);
+
+                if (mode === 0) {
+                    const ans = `${valA} buah`;
+                    return {
+                        q: `Rasio ${pairItem[0]} dan ${pairItem[1]} adalah ${a} : ${b}. Jika jumlah seluruhnya adalah ${total} buah, berapa banyak ${pairItem[0]}?`,
+                        options: buildUniqueOptions(ans, [`${valB} buah`, `${valA + k} buah`, `${Math.max(2, valA - k)} buah`, `${a * (k + 2)} buah`]),
+                        answer: ans,
+                        explanation: `Total bagian rasio = ${a} + ${b} = ${a + b} bagian. Nilai 1 bagian = ${total} ÷ ${a + b} = ${k}. Maka banyak ${pairItem[0]} = ${a} × ${k} = ${valA} buah.`
+                    };
+                } else if (mode === 1) {
+                    const bigName = a > b ? pairName[0] : pairName[1];
+                    const bigVal = Math.max(valA, valB);
+                    const bigPart = Math.max(a, b);
+                    const smallPart = Math.min(a, b);
+                    const ans = `${bigVal} poin`;
+                    return {
+                        q: `Perbandingan poin ${pairName[0]} dan ${pairName[1]} adalah ${a} : ${b}. Jika selisih poin mereka adalah ${diff} poin, berapakah poin ${bigName}?`,
+                        options: buildUniqueOptions(ans, [`${Math.min(valA, valB)} poin`, `${bigVal + k} poin`, `${total} poin`, `${bigVal - k} poin`]),
+                        answer: ans,
+                        explanation: `Selisih bagian rasio = ${bigPart} - ${smallPart} = ${bigPart - smallPart} bagian. Maka 1 bagian = ${diff} ÷ ${bigPart - smallPart} = ${k} poin. Poin ${bigName} = ${bigPart} × ${k} = ${bigVal} poin.`
+                    };
+                } else {
+                    const ans = `${total} butir`;
+                    return {
+                        q: `Kelereng ${pairName[0]} berbanding kelereng ${pairName[1]} adalah ${a} : ${b}. Jika ${pairName[0]} memiliki ${valA} butir, berapa jumlah kelereng mereka berdua?`,
+                        options: buildUniqueOptions(ans, [`${valB} butir`, `${total + k} butir`, `${diff} butir`, `${total - a} butir`]),
+                        answer: ans,
+                        explanation: `1 bagian = ${valA} ÷ ${a} = ${k} butir. Jumlah bagian mereka = ${a} + ${b} = ${a + b} bagian. Total kelereng = ${a + b} × ${k} = ${total} butir.`
+                    };
+                }
+            } else {
+                // Sulit: 3-part ratio, scale, or perimeter ratio
+                const mode = index % 3;
+                if (mode === 0) {
+                    const c = randInt(3, 8);
+                    const k = randInt(4, 10);
+                    const sumParts = a + b + c;
+                    const totalVal = sumParts * k;
+                    const targetVal = b * k;
+                    const ans = `${targetVal}`;
+                    return {
+                        q: `Perbandingan tabungan poin ${pairName[0]}, ${pairName[1]}, dan Doni adalah ${a} : ${b} : ${c}. Jika total poin ketiganya adalah ${totalVal}, berapakah poin ${pairName[1]}?`,
+                        options: buildUniqueOptions(ans, [`${a * k}`, `${c * k}`, `${targetVal + k}`, `${targetVal - k}`]),
+                        answer: ans,
+                        explanation: `Jumlah seluruh bagian rasio = ${a} + ${b} + ${c} = ${sumParts}. Nilai 1 bagian = ${totalVal} ÷ ${sumParts} = ${k}. Maka poin ${pairName[1]} (${b} bagian) = ${b} × ${k} = ${targetVal}.`
+                    };
+                } else if (mode === 1) {
+                    const cmDist = randInt(4, 12);
+                    const scaleThousands = [100000, 200000, 250000, 500000][index % 4];
+                    const realKm = (cmDist * scaleThousands) / 100000;
+                    const ans = `${realKm} km`;
+                    return {
+                        q: `Jarak dua pos balap pada peta adalah ${cmDist} cm. Jika skala peta 1 : ${scaleThousands.toLocaleString('id-ID')}, berapakah jarak sebenarnya?`,
+                        options: buildUniqueOptions(ans, [`${realKm * 10} km`, `${realKm / 2} km`, `${realKm + 5} km`, `${cmDist * 2} km`]),
+                        answer: ans,
+                        explanation: `Jarak sebenarnya = ${cmDist} × ${scaleThousands.toLocaleString('id-ID')} cm = ${(cmDist * scaleThousands).toLocaleString('id-ID')} cm. Dibagi 100.000 cm/km hasilnya adalah ${realKm} km.`
+                    };
+                } else {
+                    const pRatio = randInt(4, 7);
+                    const lRatio = randInt(2, pRatio - 1);
+                    const mult = randInt(2, 5);
+                    const P = pRatio * mult;
+                    const L = lRatio * mult;
+                    const keliling = 2 * (P + L);
+                    const luas = P * L;
+                    const ans = `${luas} m²`;
+                    return {
+                        q: `Rasio panjang dan lebar sebuah sirkuit mini berbentuk persegi panjang adalah ${pRatio} : ${lRatio}. Jika kelilingnya ${keliling} m, berapakah luasnya?`,
+                        options: buildUniqueOptions(ans, [`${luas / 2} m²`, `${(P + 2) * L} m²`, `${keliling * 2} m²`, `${P * (L + 2)} m²`]),
+                        answer: ans,
+                        explanation: `Panjang + Lebar = ${keliling} ÷ 2 = ${P + L} m. Jumlah rasio = ${pRatio} + ${lRatio} = ${pRatio + lRatio} bagian, sehingga 1 bagian = ${mult} m. Panjang = ${P} m dan Lebar = ${L} m. Luas = ${P} × ${L} = ${luas} m².`
+                    };
+                }
+            }
+        }
+
+        // Dynamic generator for Fraction/Decimal & General Arithmetic if user picks those math topics
+        function generateDynamicFractionOrMathQuestion(topicLower, difficulty, index) {
+            if (topicLower.includes('pecahan') || topicLower.includes('desimal') || topicLower.includes('persen')) {
+                const denom = [2, 4, 5, 8, 10][index % 5];
+                const num = randInt(1, denom - 1);
+                const mult = randInt(2, 5);
+                if (difficulty === 'mudah') {
+                    const ans = `${num * mult}/${denom * mult}`;
+                    return {
+                        q: `Pecahan manakah di bawah ini yang senilai dengan pecahan ${num}/${denom}?`,
+                        options: buildUniqueOptions(ans, [`${num + 1}/${denom + 1}`, `${denom * mult}/${num * mult}`, `${num * mult}/${denom}`, `${num}/${denom * mult}`]),
+                        answer: ans,
+                        explanation: `Kalikan pembilang dan penyebut ${num}/${denom} dengan ${mult}, sehingga diperoleh (${num}×${mult})/(${denom}×${mult}) = ${ans}.`
+                    };
+                } else {
+                    const pct = (num / denom) * 100;
+                    const ans = `${pct}%`;
+                    return {
+                        q: `Bentuk persen dari pecahan ${(num * mult)}/${(denom * mult)} adalah...`,
+                        options: buildUniqueOptions(ans, [`${pct + 10}%`, `${Math.max(5, pct - 15)}%`, `${(num * 10)}%`, `${100 - pct}%`]),
+                        answer: ans,
+                        explanation: `Sederhanakan ${(num * mult)}/${(denom * mult)} menjadi ${num}/${denom}, lalu kalikan 100%: (${num}/${denom}) × 100% = ${pct}%.`
+                    };
+                }
+            }
+
+            // General Arithmetic (Operasi Hitung)
+            const a = randInt(12, difficulty === 'sulit' ? 85 : 35);
+            const b = randInt(6, difficulty === 'sulit' ? 45 : 20);
+            const c = randInt(2, 9);
+            const res = a + b * c;
+            const ans = `${res}`;
+            return {
+                q: `Hasil dari operasi hitung ${a} + (${b} × ${c}) adalah...`,
+                options: buildUniqueOptions(ans, [`${(a + b) * c}`, `${res + 10}`, `${res - c}`, `${a * b + c}`]),
+                answer: ans,
+                explanation: `Kerjakan perkalian terlebih dahulu: ${b} × ${c} = ${b * c}. Kemudian jumlahkan dengan ${a}: ${a} + ${b * c} = ${res}.`
+            };
+        }
+
+        // Parse Custom Teacher Input (Pipe format or Informative Sentences)
+        function parseCustomQuestions(rawText, totalNeeded) {
+            const lines = rawText.split(/\n+/).map(l => l.trim()).filter(Boolean);
+            const parsed = [];
+
+            // 1. Check pipe-separated format: Question | Correct | Wrong1 | Wrong2 | Wrong3 | Explanation
+            for (const line of lines) {
+                if (line.includes('|')) {
+                    const parts = line.split('|').map(p => p.trim()).filter(Boolean);
+                    if (parts.length >= 3) {
+                        const q = parts[0];
+                        const ans = parts[1];
+                        const wrongs = parts.slice(2, 5);
+                        const exp = parts[5] || `Jawaban yang tepat sesuai materi adalah "${ans}".`;
+                        parsed.push({
+                            q,
+                            options: buildUniqueOptions(ans, wrongs),
+                            answer: ans,
+                            explanation: exp
+                        });
+                    }
+                }
+            }
+
+            if (parsed.length > 0) {
+                const finalSet = [];
+                for (let i = 0; i < totalNeeded; i++) {
+                    const base = parsed[i % parsed.length];
+                    finalSet.push({
+                        q: base.q,
+                        options: shuffleArray(base.options),
+                        answer: base.answer,
+                        explanation: base.explanation
+                    });
+                }
+                return finalSet;
+            }
+
+            // 2. Otherwise parse informative sentences into cloze/keyword questions
+            const sentences = rawText
+                .split(/(?<=[.!?])\s+|\n+/)
+                .map(s => s.trim())
+                .filter(s => s.length >= 25);
+
+            if (sentences.length < 2) return null;
+
+            // Extract significant words (length >= 5) across all sentences as distractor pool
+            const wordPool = [];
+            sentences.forEach(s => {
+                const words = s.replace(/[^a-zA-Z0-9\s-]/g, '').split(/\s+/);
+                words.forEach(w => {
+                    if (w.length >= 5 && !wordPool.includes(w)) wordPool.push(w);
+                });
+            });
+
+            if (wordPool.length < 4) return null;
+
+            const generated = [];
+            for (let i = 0; i < totalNeeded; i++) {
+                const s = sentences[i % sentences.length];
+                const words = s.replace(/[^a-zA-Z0-9\s-]/g, '').split(/\s+/).filter(w => w.length >= 5);
+                const targetWord = words[words.length - 1] || wordPool[i % wordPool.length];
+                const blankedSentence = s.replace(new RegExp(targetWord, 'i'), '_____');
+                generated.push({
+                    q: `Lengkapilah pernyataan sesuai materi berikut:\n"${blankedSentence}"`,
+                    options: buildUniqueOptions(targetWord, shuffleArray(wordPool)),
+                    answer: targetWord,
+                    explanation: `Berdasarkan teks materi yang diberikan, kalimat lengkapnya adalah: "${s}"`
+                });
+            }
+            return generated;
+        }
+
+        // Master Question Set Builder
+        function buildQuestionDeck(config) {
+            const topicLower = config.materi.toLowerCase();
+            const mapelLower = config.mapel.toLowerCase();
+            const customRaw = (config.customText || '').trim();
+
+            // Priority 1: If user provided custom text, try parsing it first
+            if (customRaw.length > 10) {
+                const customDeck = parseCustomQuestions(customRaw, config.jumlahSoal);
+                if (customDeck && customDeck.length > 0) {
+                    return { ok: true, questions: customDeck };
+                }
+            }
+
+            // Priority 2: Ratio & Comparison (Rasio / Perbandingan / Skala)
+            const isRatioTopic =
+                topicLower.includes('rasio') ||
+                topicLower.includes('perbandingan') ||
+                topicLower.includes('skala') ||
+                topicLower.includes('proporsi');
+
+            if (isRatioTopic) {
+                const deck = [];
+                const curatedList = shuffleArray(CuratedRatioBank[config.difficulty] || CuratedRatioBank.mudah);
+
+                // First include curated bank items
+                for (let i = 0; i < Math.min(curatedList.length, config.jumlahSoal); i++) {
+                    const item = curatedList[i];
+                    deck.push({
+                        q: item.q,
+                        options: buildUniqueOptions(item.ans, item.wrongs),
+                        answer: item.ans,
+                        explanation: item.exp
+                    });
+                }
+
+                // Fill remaining up to jumlahSoal with dynamic algorithmic Ratio problems
+                let idx = 0;
+                while (deck.length < config.jumlahSoal) {
+                    deck.push(generateDynamicRatioQuestion(config.difficulty, idx++));
+                }
+
+                return { ok: true, questions: shuffleArray(deck) };
+            }
+
+            // Priority 3: Other Supported Math Topics (Pecahan, Desimal, Persen, Operasi Hitung, Bilangan)
+            const isSupportedMath =
+                mapelLower.includes('matematika') &&
+                (topicLower.includes('pecahan') ||
+                 topicLower.includes('desimal') ||
+                 topicLower.includes('persen') ||
+                 topicLower.includes('hitung') ||
+                 topicLower.includes('bilangan') ||
+                 topicLower.includes('perkalian') ||
+                 topicLower.includes('pembagian') ||
+                 topicLower.includes('penjumlahan'));
+
+            if (isSupportedMath) {
+                const deck = [];
+                for (let i = 0; i < config.jumlahSoal; i++) {
+                    deck.push(generateDynamicFractionOrMathQuestion(topicLower, config.difficulty, i));
+                }
+                return { ok: true, questions: deck };
+            }
+
+            // Priority 4: Topic is unrecognizable and no valid custom material provided -> Ask user instead of hallucinating!
+            return {
+                ok: false,
+                reason: `Materi "${config.materi}" (${config.mapel}) belum tersedia di bank soal lokal dan tidak dapat dibuat secara otomatis tanpa risiko mengarang materi yang tidak relevan. Silakan masukkan ringkasan materi atau daftar soal pada kolom "Input Materi Tambahan / Soal Kustom Guru", atau gunakan topik bawaan "Rasio Bilangan".`
+            };
+        }
+
+        /********************************************************************
+         * 4. UI SETUP & FORM HANDLERS
+         ********************************************************************/
+        let selectedCarColors = { primary: '#ef4444', secondary: '#b91c1c' };
+
+        function selectCarColor(primary, secondary, btnEl) {
+            selectedCarColors = { primary, secondary };
+            document.querySelectorAll('.car-color-btn').forEach(b => {
+                b.classList.remove('border-yellow-400', 'border-4', 'scale-110');
+                b.classList.add('border-white', 'border-2');
+            });
+            btnEl.classList.remove('border-white', 'border-2');
+            btnEl.classList.add('border-yellow-400', 'border-4', 'scale-110');
+            SoundFX.click();
+        }
+
+        function setQuickTopic(mapel, materi, tujuan) {
+            document.getElementById('inputMapel').value = mapel;
+            document.getElementById('inputMateri').value = materi;
+            document.getElementById('inputTujuan').value = tujuan;
+            document.getElementById('topicWarningModal').classList.add('hidden');
+            SoundFX.click();
+        }
+
+        function useDefaultRatioTopic() {
+            setQuickTopic('Matematika', 'Rasio Bilangan', 'Siswa dapat menghitung rasio dengan benar');
+        }
+
+        function toggleCustomMaterial() {
+            const content = document.getElementById('customMaterialContent');
+            const toggleText = document.getElementById('customBoxToggleText');
+            const isHidden = content.classList.contains('hidden');
+            if (isHidden) {
+                content.classList.remove('hidden');
+                toggleText.textContent = 'Tutup Panel ▲';
+            } else {
+                content.classList.add('hidden');
+                toggleText.textContent = 'Buka Panel ▼';
+            }
+        }
+
+        function openCustomMaterialAndFocus() {
+            const content = document.getElementById('customMaterialContent');
+            const toggleText = document.getElementById('customBoxToggleText');
+            content.classList.remove('hidden');
+            toggleText.textContent = 'Tutup Panel ▲';
+            document.getElementById('inputCustomText').focus();
+        }
+
+        // Slider Jumlah Soal listener
+        const sliderSoal = document.getElementById('inputJumlahSoal');
+        const labelSoal = document.getElementById('labelJumlahSoal');
+        sliderSoal.addEventListener('input', (e) => {
+            labelSoal.textContent = `${e.target.value} Soal`;
+        });
+
+        // Difficulty Button listener
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                SoundFX.click();
+                const diff = btn.getAttribute('data-diff');
+                document.getElementById('inputDifficulty').value = diff;
+
+                document.querySelectorAll('.diff-btn').forEach(b => {
+                    b.className = 'diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-white text-slate-600 border-slate-300 flex items-center justify-center gap-1';
+                });
+
+                if (diff === 'mudah') {
+                    btn.className = 'diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-emerald-500 text-white border-emerald-600 flex items-center justify-center gap-1';
+                } else if (diff === 'sedang') {
+                    btn.className = 'diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-amber-500 text-white border-amber-600 flex items-center justify-center gap-1';
+                } else {
+                    btn.className = 'diff-btn btn-arcade py-2 px-3 rounded-xl font-extrabold text-sm border-2 bg-rose-500 text-white border-rose-600 flex items-center justify-center gap-1';
+                }
+            });
+        });
+
+        /********************************************************************
+         * 5. PSEUDO-3D KART RACING ENGINE & GAME STATE
+         ********************************************************************/
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameConfig = {
+            target: 'Kelas 6 SD',
+            mapel: 'Matematika',
+            materi: 'Rasio Bilangan',
+            tujuan: 'Siswa dapat menghitung rasio dengan benar',
+            jumlahSoal: 25,
+            difficulty: 'mudah',
+            customText: ''
+        };
+
+        let raceState = {
+            running: false,
+            pausedForModal: false,
+            finishingSequence: false,
+            questions: [],
+            currentIndex: 0,
+            score: 0,
+            streak: 0,
+            correctCount: 0,
+            history: [],
+            startTime: 0,
+            elapsedSeconds: 0,
+            checkpointsReached: [false, false, false],
+            // Pseudo-3D Road & Kart Physics
+            trackPos: 0,
+            speed: 110,
+            baseSpeed: 110,
+            targetSpeed: 110,
+            turboTimer: 0,
+            laneOffset: 0,       // -1 (left), 0 (center), 1 (right)
+            targetLaneOffset: 0,
+            curvePhase: 0,
+            gateVisual: null,    // { zDistance: 1.0 -> 0.0, type: 'checkpoint' | 'finish', label: '' }
+            particles: [],
+            clouds: [
+                { x: 0.15, y: 0.12, s: 1.1 },
+                { x: 0.48, y: 0.08, s: 0.85 },
+                { x: 0.80, y: 0.15, s: 1.25 }
+            ]
+        };
+
+        let timerInterval = null;
+        let animFrameId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Steer Kart Left / Right
+        function steerLane(dir) {
+            if (!raceState.running || raceState.pausedForModal) return;
+            raceState.targetLaneOffset = Math.max(-0.85, Math.min(0.85, raceState.targetLaneOffset + dir * 0.55));
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (!raceState.running) return;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') steerLane(-1);
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') steerLane(1);
+        });
+
+        // Form Submission -> Validate & Start Game
+        document.getElementById('setupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            SoundFX.init();
+            SoundFX.click();
+
+            gameConfig = {
+                target: document.getElementById('inputTarget').value.trim() || 'Kelas 6 SD',
+                mapel: document.getElementById('inputMapel').value.trim(),
+                materi: document.getElementById('inputMateri').value.trim() || 'Rasio Bilangan',
+                tujuan: document.getElementById('inputTujuan').value.trim() || 'Siswa dapat menghitung rasio dengan benar',
+                jumlahSoal: parseInt(document.getElementById('inputJumlahSoal').value, 10) || 25,
+                difficulty: document.getElementById('inputDifficulty').value || 'mudah',
+                customText: document.getElementById('inputCustomText').value.trim()
+            };
+
+            const deckResult = buildQuestionDeck(gameConfig);
+            if (!deckResult.ok) {
+                const warnModal = document.getElementById('topicWarningModal');
+                document.getElementById('topicWarningText').textContent = deckResult.reason;
+                warnModal.classList.remove('hidden');
+                warnModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                SoundFX.wrong();
+                return;
+            }
+
+            document.getElementById('topicWarningModal').classList.add('hidden');
+            startRaceWithQuestions(deckResult.questions);
+        });
+
+        function startRaceWithQuestions(questions) {
+            // Switch Screens
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('questionOverlay').classList.remove('hidden');
+            resizeCanvas();
+
+            const baseSpd = gameConfig.difficulty === 'mudah' ? 115 : (gameConfig.difficulty === 'sedang' ? 135 : 155);
+
+            raceState = {
+                running: true,
+                pausedForModal: false,
+                finishingSequence: false,
+                questions: questions,
+                currentIndex: 0,
+                score: 0,
+                streak: 0,
+                correctCount: 0,
+                history: [],
+                startTime: Date.now(),
+                elapsedSeconds: 0,
+                checkpointsReached: [false, false, false],
+                trackPos: 0,
+                speed: baseSpd,
+                baseSpeed: baseSpd,
+                targetSpeed: baseSpd,
+                turboTimer: 0,
+                laneOffset: 0,
+                targetLaneOffset: 0,
+                curvePhase: 0,
+                gateVisual: null,
+                particles: [],
+                clouds: [
+                    { x: 0.15, y: 0.12, s: 1.1 },
+                    { x: 0.48, y: 0.08, s: 0.85 },
+                    { x: 0.80, y: 0.15, s: 1.25 }
+                ]
+            };
+
+            // Reset Checkpoint UI Nodes
+            [1, 2, 3].forEach(num => {
+                const node = document.getElementById(`cpNode${num}`);
+                node.className = 'relative z-10 px-2 py-0.5 rounded-full bg-slate-700 border-2 border-slate-400 text-[10px] font-extrabold text-slate-200 flex items-center gap-1 transition-all';
+            });
+
+            // Populate Top HUD
+            const diffLabel = gameConfig.difficulty.charAt(0).toUpperCase() + gameConfig.difficulty.slice(1);
+            document.getElementById('hudTopic').textContent = gameConfig.materi;
+            document.getElementById('hudTargetDiff').textContent = `${gameConfig.target} • ${diffLabel}`;
+            updateHUD();
+            renderCurrentQuestion();
+
+            // Timer Loop
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (raceState.running && !raceState.pausedForModal && !raceState.finishingSequence) {
+                    raceState.elapsedSeconds++;
+                    document.getElementById('hudTimer').textContent = formatTime(raceState.elapsedSeconds);
+                }
+            }, 1000);
+
+            // Start Animation Loop
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            lastFrameTime = performance.now();
+            animFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateHUD() {
+            const total = raceState.questions.length;
+            const currentNum = Math.min(total, raceState.currentIndex + 1);
+            const pct = total > 0 ? Math.min(100, Math.round((raceState.currentIndex / total) * 100)) : 0;
+
+            document.getElementById('hudScore').textContent = raceState.score;
+            document.getElementById('hudQuestionNum').textContent = `${currentNum} / ${total}`;
+            document.getElementById('hudSpeed').textContent = Math.round(raceState.speed);
+            document.getElementById('hudProgressBar').style.width = `${pct}%`;
+            document.getElementById('hudMiniKart').style.left = `calc(${pct}% - 12px)`;
+
+            const streakBadge = document.getElementById('streakBadge');
+            if (raceState.streak >= 2) {
+                streakBadge.textContent = `🔥 Kombo Turbo x${raceState.streak}!`;
+                streakBadge.classList.remove('hidden');
+            } else {
+                streakBadge.classList.add('hidden');
+            }
+        }
+
+        function renderCurrentQuestion() {
+            if (raceState.currentIndex >= raceState.questions.length) {
+                triggerFinishSequence();
+                return;
+            }
+
+            const qObj = raceState.questions[raceState.currentIndex];
+            document.getElementById('qBadge').textContent = `Soal #${raceState.currentIndex + 1} dari ${raceState.questions.length} • ${gameConfig.materi}`;
+            document.getElementById('qText').textContent = qObj.q;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            const badgeLetters = ['A', 'B', 'C', 'D'];
+            const btnColors = [
+                'from-sky-500 to-blue-600 border-sky-300 hover:from-sky-400 hover:to-blue-500',
+                'from-emerald-500 to-green-600 border-emerald-300 hover:from-emerald-400 hover:to-green-500',
+                'from-amber-500 to-orange-500 border-amber-300 hover:from-amber-400 hover:to-orange-400',
+                'from-purple-500 to-indigo-600 border-purple-300 hover:from-purple-400 hover:to-indigo-500'
+            ];
+
+            qObj.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `btn-arcade bg-gradient-to-r ${btnColors[idx % 4]} text-white font-bold py-2.5 sm:py-3 px-4 rounded-2xl border-2 flex items-center gap-3 text-left text-sm sm:text-base cursor-pointer`;
+                btn.innerHTML = `
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/25 flex items-center justify-center font-cartoon text-base sm:text-lg shrink-0">${badgeLetters[idx]}</span>
+                    <span class="leading-snug break-words">${optText}</span>
+                `;
+                btn.addEventListener('click', () => handleSelectAnswer(optText, idx));
+                container.appendChild(btn);
+            });
+        }
+
+        function handleSelectAnswer(selectedOption, optionIdx) {
+            if (!raceState.running || raceState.pausedForModal || raceState.finishingSequence) return;
+
+            const qObj = raceState.questions[raceState.currentIndex];
+            const isCorrect = String(selectedOption).trim() === String(qObj.answer).trim();
+
+            // Record answer history for final review
+            raceState.history.push({
+                num: raceState.currentIndex + 1,
+                q: qObj.q,
+                userAns: selectedOption,
+                correctAns: qObj.answer,
+                isCorrect: isCorrect,
+                explanation: qObj.explanation
+            });
+
+            // Steer kart slightly toward chosen option lane
+            const laneTargets = [-0.65, -0.22, 0.22, 0.65];
+            raceState.targetLaneOffset = laneTargets[optionIdx % 4];
+
+            if (isCorrect) {
+                SoundFX.correct();
+                raceState.correctCount++;
+                raceState.streak++;
+                const diffMult = gameConfig.difficulty === 'mudah' ? 100 : (gameConfig.difficulty === 'sedang' ? 125 : 150);
+                const streakBonus = Math.min(100, (raceState.streak - 1) * 20);
+                raceState.score += diffMult + streakBonus;
+
+                // Turbo Speed Boost + Exhaust Particles
+                raceState.turboTimer = 2.0;
+                raceState.targetSpeed = raceState.baseSpeed + 95;
+                spawnTurboParticles(22);
+
+                advanceProgressAndCheckpoints();
+            } else {
+                SoundFX.wrong();
+                raceState.streak = 0;
+                raceState.turboTimer = 0;
+                raceState.targetSpeed = Math.max(65, raceState.baseSpeed - 45);
+                raceState.speed = raceState.targetSpeed;
+
+                // Show Kid-Friendly Explanation Modal
+                raceState.pausedForModal = true;
+                document.getElementById('expQuestion').textContent = `Soal: ${qObj.q}`;
+                document.getElementById('expCorrectAns').textContent = qObj.answer;
+                document.getElementById('expText').textContent = qObj.explanation;
+                document.getElementById('explanationModal').classList.remove('hidden');
+            }
+        }
+
+        function closeExplanationAndContinue() {
+            SoundFX.click();
+            document.getElementById('explanationModal').classList.add('hidden');
+            raceState.pausedForModal = false;
+            raceState.targetSpeed = raceState.baseSpeed;
+            advanceProgressAndCheckpoints();
+        }
+
+        function advanceProgressAndCheckpoints() {
+            raceState.currentIndex++;
+            const total = raceState.questions.length;
+            const progressRatio = raceState.currentIndex / total;
+
+            // Check 3 Checkpoints at 25%, 50%, 75%
+            const cpThresholds = [0.25, 0.50, 0.75];
+            cpThresholds.forEach((threshold, idx) => {
+                if (progressRatio >= threshold && !raceState.checkpointsReached[idx]) {
+                    raceState.checkpointsReached[idx] = true;
+                    triggerCheckpointCelebration(idx + 1);
+                }
+            });
+
+            updateHUD();
+
+            if (raceState.currentIndex >= total) {
+                triggerFinishSequence();
+            } else {
+                renderCurrentQuestion();
+            }
+        }
+
+        function triggerCheckpointCelebration(cpNumber) {
+            SoundFX.checkpoint();
+            raceState.score += 150;
+            raceState.turboTimer = 2.4;
+
+            // Highlight Checkpoint Node on HUD
+            const node = document.getElementById(`cpNode${cpNumber}`);
+            if (node) {
+                node.className = 'relative z-10 px-2 py-0.5 rounded-full bg-yellow-400 border-2 border-white text-[10px] font-extrabold text-slate-900 flex items-center gap-1 shadow scale-110 transition-all';
+            }
+
+            // Spawn 3D Archway Gate on Road
+            raceState.gateVisual = {
+                zDistance: 1.0,
+                type: 'checkpoint',
+                label: `CHECKPOINT ${cpNumber}`
+            };
+
+            // Show floating Checkpoint Banner
+            const banner = document.getElementById('checkpointBanner');
+            document.getElementById('cpBannerTitle').textContent = `CHECKPOINT ${cpNumber} TERCAPAI!`;
+            document.getElementById('cpBannerSub').textContent = `Bonus +150 Poin & Kecepatan Turbo!`;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 2600);
+        }
+
+        function triggerFinishSequence() {
+            raceState.finishingSequence = true;
+            SoundFX.finish();
+            document.getElementById('questionOverlay').classList.add('hidden');
+            raceState.turboTimer = 3.0;
+            raceState.gateVisual = {
+                zDistance: 1.0,
+                type: 'finish',
+                label: 'GARIS FINIS 🏁'
+            };
+            spawnTurboParticles(40);
+
+            setTimeout(() => {
+                showFinalResultsScreen();
+            }, 2400);
+        }
+
+        /********************************************************************
+         * 6. PSEUDO-3D CANVAS RENDERING (Road, Scenery, Gates, Kart, FX)
+         ********************************************************************/
+        let lastFrameTime = performance.now();
+
+        function spawnTurboParticles(count) {
+            for (let i = 0; i < count; i++) {
+                raceState.particles.push({
+                    x: (Math.random() - 0.5) * 70,
+                    y: (Math.random() - 0.5) * 18,
+                    vx: (Math.random() - 0.5) * 120,
+                    vy: 80 + Math.random() * 140,
+                    size: 6 + Math.random() * 10,
+                    life: 1.0,
+                    color: Math.random() > 0.4 ? '#facc15' : '#f97316'
+                });
+            }
+        }
+
+        function gameLoop(now) {
+            if (!raceState.running) return;
+            const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+            lastFrameTime = now;
+
+            updateRacePhysics(dt);
+            renderPseudo3DScene();
+
+            animFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateRacePhysics(dt) {
+            if (raceState.turboTimer > 0) {
+                raceState.turboTimer -= dt;
+                raceState.targetSpeed = raceState.baseSpeed + 100;
+                if (Math.random() < 0.65) spawnTurboParticles(2);
+            } else if (!raceState.pausedForModal) {
+                raceState.targetSpeed = raceState.baseSpeed;
+            }
+
+            // Smooth speed interpolation
+            raceState.speed += (raceState.targetSpeed - raceState.speed) * dt * 4;
+            document.getElementById('hudSpeed').textContent = Math.round(raceState.speed);
+
+            // Advance track & gentle road curves
+            const effectiveSpeed = raceState.pausedForModal ? raceState.speed * 0.25 : raceState.speed;
+            raceState.trackPos += effectiveSpeed * dt * 0.18;
+            raceState.curvePhase += effectiveSpeed * dt * 0.004;
+
+            // Smooth lane steering
+            raceState.laneOffset += (raceState.targetLaneOffset - raceState.laneOffset) * dt * 6;
+
+            // Approach 3D Checkpoint / Finish Archway Gate
+            if (raceState.gateVisual) {
+                raceState.gateVisual.zDistance -= dt * 0.55;
+                if (raceState.gateVisual.zDistance <= -0.15) {
+                    raceState.gateVisual = null;
+                }
+            }
+
+            // Update exhaust particles
+            for (let i = raceState.particles.length - 1; i >= 0; i--) {
+                const p = raceState.particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt * 2.2;
+                if (p.life <= 0) raceState.particles.splice(i, 1);
+            }
+
+            // Drift clouds slowly
+            raceState.clouds.forEach(c => {
+                c.x += dt * 0.012 * c.s;
+                if (c.x > 1.15) c.x = -0.15;
+            });
+        }
+
+        function renderPseudo3DScene() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const horizonY = Math.floor(h * 0.36);
+
+            // 1. Sky Gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, '#0284c7');
+            skyGrad.addColorStop(0.6, '#38bdf8');
+            skyGrad.addColorStop(1, '#bae6fd');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, w, horizonY);
+
+            // 2. Cheerful Sun & Clouds
+            ctx.save();
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath();
+            ctx.arc(w * 0.85, horizonY * 0.35, Math.min(w, h) * 0.055, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            raceState.clouds.forEach(c => {
+                drawCartoonCloud(w * c.x, horizonY * c.y, 38 * c.s);
+            });
+
+            // 3. Distant Mountains & Green Hills on Horizon
+            const curveShift = Math.sin(raceState.curvePhase) * 60;
+            ctx.fillStyle = '#64748b';
+            for (let i = -1; i <= 5; i++) {
+                const mx = (i * w * 0.25) - ((curveShift * 0.4) % (w * 0.25));
+                ctx.beginPath();
+                ctx.moveTo(mx - 120, horizonY);
+                ctx.lineTo(mx, horizonY - 65);
+                ctx.lineTo(mx + 120, horizonY);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = '#22c55e';
+            for (let i = -1; i <= 6; i++) {
+                const hx = (i * w * 0.22) - ((curveShift * 0.7) % (w * 0.22));
+                ctx.beginPath();
+                ctx.arc(hx, horizonY + 12, 95, Math.PI, 0);
+                ctx.fill();
+            }
+
+            // 4. Pseudo-3D Segmented Perspective Road
+            const numSlices = 75;
+            const roadHeight = h - horizonY;
+            const roadCenterBottom = w * 0.5 - raceState.laneOffset * (w * 0.18);
+            const curveStrength = Math.sin(raceState.curvePhase) * (w * 0.14);
+
+            for (let i = 0; i < numSlices; i++) {
+                const t1 = i / numSlices;
+                const t2 = (i + 1) / numSlices;
+
+                // Non-linear perspective depth
+                const p1 = Math.pow(t1, 1.75);
+                const p2 = Math.pow(t2, 1.75);
+
+                const y1 = horizonY + p1 * roadHeight;
+                const y2 = horizonY + p2 * roadHeight + 1;
+
+                // Road width expands from horizon to bottom
+                const rw1 = (w * 0.04) + p1 * (w * 0.78);
+                const rw2 = (w * 0.04) + p2 * (w * 0.78);
+
+                // Curve offset stronger near horizon
+                const cx1 = roadCenterBottom + Math.pow(1 - t1, 2) * curveStrength;
+                const cx2 = roadCenterBottom + Math.pow(1 - t2, 2) * curveStrength;
+
+                const zBand = Math.floor((1 / Math.max(0.04, p2)) * 2.5 + raceState.trackPos);
+                const isAlt = zBand % 2 === 0;
+
+                // Grass background strip
+                ctx.fillStyle = isAlt ? '#16a34a' : '#22c55e';
+                ctx.fillRect(0, y1, w, y2 - y1);
+
+                // Red/White Rumble Curbs
+                const curbW1 = rw1 * 1.14;
+                const curbW2 = rw2 * 1.14;
+                ctx.fillStyle = isAlt ? '#ef4444' : '#ffffff';
+                drawTrapezoid(cx1, y1, curbW1, cx2, y2, curbW2);
+
+                // Asphalt Road Surface
+                ctx.fillStyle = isAlt ? '#334155' : '#475569';
+                drawTrapezoid(cx1, y1, rw1, cx2, y2, rw2);
+
+                // White Dashed Lane Dividers
+                if (isAlt) {
+                    ctx.fillStyle = '#f8fafc';
+                    drawTrapezoid(cx1 - rw1 * 0.16, y1, rw1 * 0.02, cx2 - rw2 * 0.16, y2, rw2 * 0.02);
+                    drawTrapezoid(cx1 + rw1 * 0.16, y1, rw1 * 0.02, cx2 + rw2 * 0.16, y2, rw2 * 0.02);
+                }
+            }
+
+            // 5. Roadside Trees / Signs
+            drawRoadsideObjects(w, h, horizonY, roadHeight, roadCenterBottom, curveStrength);
+
+            // 6. 3D Checkpoint / Finish Archway Gate if active
+            if (raceState.gateVisual && raceState.gateVisual.zDistance > 0) {
+                const gz = 1 - raceState.gateVisual.zDistance; // 0 at horizon -> 1 at player
+                const gp = Math.pow(gz, 1.75);
+                const gy = horizonY + gp * roadHeight;
+                const grw = (w * 0.04) + gp * (w * 0.78);
+                const gcx = roadCenterBottom + Math.pow(1 - gz, 2) * curveStrength;
+                drawArchwayGate(gcx, gy, grw, raceState.gateVisual.type, raceState.gateVisual.label);
+            }
+
+            // 7. Player 3D-Styled Cartoon Kart (Positioned above question card)
+            const kartY = Math.min(h * 0.56, horizonY + roadHeight * 0.36);
+            const kartX = w * 0.5 + (raceState.targetLaneOffset - raceState.laneOffset) * 45;
+            drawPlayerKart(kartX, kartY, Math.min(w, h) * 0.0014);
+        }
+
+        function drawTrapezoid(x1, y1, w1, x2, y2, w2) {
+            ctx.beginPath();
+            ctx.moveTo(x1 - w1 / 2, y1);
+            ctx.lineTo(x1 + w1 / 2, y1);
+            ctx.lineTo(x2 + w2 / 2, y2);
+            ctx.lineTo(x2 - w2 / 2, y2);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawCartoonCloud(x, y, r) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.arc(x + r * 0.8, y + r * 0.1, r * 0.75, 0, Math.PI * 2);
+            ctx.arc(x - r * 0.8, y + r * 0.15, r * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawRoadsideObjects(w, h, horizonY, roadHeight, roadCenterBottom, curveStrength) {
+            const numProps = 8;
+            for (let i = 0; i < numProps; i++) {
+                // Prop depth cycles smoothly from 0 (horizon) to 1 (bottom)
+                const rawProg = ((i / numProps) + (raceState.trackPos * 0.035)) % 1;
+                const p = Math.pow(rawProg, 1.75);
+                const y = horizonY + p * roadHeight;
+                const rw = (w * 0.04) + p * (w * 0.78);
+                const cx = roadCenterBottom + Math.pow(1 - rawProg, 2) * curveStrength;
+                const scale = 0.2 + p * 1.35;
+
+                // Left & Right trees
+                const leftX = cx - rw * 0.72;
+                const rightX = cx + rw * 0.72;
+                drawCartoonTree(leftX, y, scale);
+                drawCartoonTree(rightX, y, scale);
+            }
+        }
+
+        function drawCartoonTree(x, y, scale) {
+            const trunkW = 10 * scale;
+            const trunkH = 26 * scale;
+            ctx.save();
+            // Trunk
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(x - trunkW / 2, y - trunkH, trunkW, trunkH);
+            // Foliage
+            ctx.fillStyle = '#15803d';
+            ctx.beginPath();
+            ctx.arc(x, y - trunkH - 12 * scale, 22 * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.arc(x - 5 * scale, y - trunkH - 16 * scale, 16 * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawArchwayGate(cx, y, roadWidth, type, label) {
+            const pillarH = roadWidth * 0.42;
+            const pillarW = Math.max(6, roadWidth * 0.05);
+            const leftX = cx - roadWidth * 0.52;
+            const rightX = cx + roadWidth * 0.52;
+
+            ctx.save();
+            // Pillars
+            ctx.fillStyle = type === 'finish' ? '#facc15' : '#38bdf8';
+            ctx.fillRect(leftX - pillarW / 2, y - pillarH, pillarW, pillarH);
+            ctx.fillRect(rightX - pillarW / 2, y - pillarH, pillarW, pillarH);
+
+            // Top Banner
+            const bannerH = Math.max(16, roadWidth * 0.11);
+            ctx.fillStyle = type === 'finish' ? '#1e293b' : '#f59e0b';
+            ctx.fillRect(leftX - pillarW / 2, y - pillarH - bannerH, (rightX - leftX) + pillarW, bannerH);
+
+            // Banner Text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `900 ${Math.max(10, Math.floor(bannerH * 0.55))}px Fredoka, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, cx, y - pillarH - bannerH / 2);
+            ctx.restore();
+        }
+
+        function drawPlayerKart(x, y, baseScale) {
+            const s = Math.max(0.75, Math.min(1.35, baseScale));
+            const bounce = Math.sin(raceState.trackPos * 2.4) * 2.5;
+            const steerTilt = (raceState.targetLaneOffset - raceState.laneOffset) * 0.18;
+
+            ctx.save();
+            ctx.translate(x, y + bounce);
+            ctx.rotate(steerTilt);
+            ctx.scale(s, s);
+
+            // Turbo Flame Particles behind Kart
+            raceState.particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.beginPath();
+                ctx.arc(p.x, 28 + p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            // Shadow under Kart
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.beginPath();
+            ctx.ellipse(0, 32, 68, 16, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rear Tires (Left & Right)
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.roundRect(-66, 2, 24, 32, 7);
+            ctx.roundRect(42, 2, 24, 32, 7);
+            ctx.fill();
+
+            // Tire Rim Highlights
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(-62, 10, 6, 16);
+            ctx.fillRect(56, 10, 6, 16);
+
+            // Kart Main Body Chassis
+            ctx.fillStyle = selectedCarColors.secondary;
+            ctx.beginPath();
+            ctx.roundRect(-48, -6, 96, 34, 14);
+            ctx.fill();
+
+            ctx.fillStyle = selectedCarColors.primary;
+            ctx.beginPath();
+            ctx.moveTo(-42, 22);
+            ctx.lineTo(-30, -18);
+            ctx.lineTo(30, -18);
+            ctx.lineTo(42, 22);
+            ctx.closePath();
+            ctx.fill();
+
+            // White Racing Stripe & Number
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-9, -18, 18, 40);
+
+            // Twin Exhaust Pipes
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(-26, 22, 10, 10);
+            ctx.fillRect(16, 22, 10, 10);
+
+            if (raceState.turboTimer > 0) {
+                // Turbo Blue/Gold Jet Flames
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(-26, 32);
+                ctx.lineTo(-21, 55 + Math.random() * 15);
+                ctx.lineTo(-16, 32);
+                ctx.moveTo(16, 32);
+                ctx.lineTo(21, 55 + Math.random() * 15);
+                ctx.lineTo(26, 32);
+                ctx.fill();
+            }
+
+            // Rear Spoiler Wing
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-32, -16, 6, 14);
+            ctx.fillRect(26, -16, 6, 14);
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.roundRect(-46, -24, 92, 10, 5);
+            ctx.fill();
+
+            // Driver Helmet
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, -30, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Helmet Racing Visor Strip
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.roundRect(-13, -36, 26, 8, 4);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        /********************************************************************
+         * 7. FINAL RESULTS, MEDAL & ANSWER DISCUSSION SCREEN
+         ********************************************************************/
+        function showFinalResultsScreen() {
+            raceState.running = false;
+            if (timerInterval) clearInterval(timerInterval);
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            const total = raceState.questions.length;
+            const correct = raceState.correctCount;
+            const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+            const cpCount = raceState.checkpointsReached.filter(Boolean).length;
+
+            // Medal Determination
+            let medalEmoji = '🎖️';
+            let medalTitle = 'Medali Partisipasi • Tetap Semangat Berlatih!';
+            if (accuracy >= 85) {
+                medalEmoji = '🥇';
+                medalTitle = 'Medali Emas • Juara Umum EDU RACING!';
+            } else if (accuracy >= 65) {
+                medalEmoji = '🥈';
+                medalTitle = 'Medali Perak • Pembalap Hebat!';
+            } else if (accuracy >= 45) {
+                medalEmoji = '🥉';
+                medalTitle = 'Medali Perunggu • Pembalap Tangguh!';
+            }
+
+            document.getElementById('medalEmoji').textContent = medalEmoji;
+            document.getElementById('medalTitle').textContent = medalTitle;
+            document.getElementById('resultSummaryMeta').textContent = `${gameConfig.target} • ${gameConfig.mapel}: ${gameConfig.materi} (${gameConfig.tujuan})`;
+
+            document.getElementById('resScore').textContent = raceState.score.toLocaleString('id-ID');
+            document.getElementById('resAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('resCorrectRatio').textContent = `${correct} dari ${total} Soal Benar`;
+            document.getElementById('resTime').textContent = formatTime(raceState.elapsedSeconds);
+            document.getElementById('resCheckpoints').textContent = `${cpCount} / 3`;
+
+            renderReviewList('all');
+        }
+
+        function filterReview(mode) {
+            SoundFX.click();
+            const btns = {
+                all: document.getElementById('btnFilterAll'),
+                wrong: document.getElementById('btnFilterWrong'),
+                correct: document.getElementById('btnFilterCorrect')
+            };
+            Object.keys(btns).forEach(k => {
+                if (k === mode) {
+                    btns[k].className = 'text-xs font-bold px-3 py-1 rounded-lg bg-indigo-600 text-white';
+                } else {
+                    btns[k].className = 'text-xs font-bold px-3 py-1 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300';
+                }
+            });
+            renderReviewList(mode);
+        }
+
+        function renderReviewList(mode) {
+            const container = document.getElementById('reviewContainer');
+            container.innerHTML = '';
+
+            const filtered = raceState.history.filter(item => {
+                if (mode === 'wrong') return !item.isCorrect;
+                if (mode === 'correct') return item.isCorrect;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-slate-500 font-bold text-sm">
+                        Tidak ada data soal pada kategori filter ini. 🎉
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                const borderCls = item.isCorrect ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-300 bg-rose-50/60';
+                const badgeCls = item.isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white';
+                const statusIcon = item.isCorrect ? '✅ Benar' : '❌ Kurang Tepat';
+
+                card.className = `p-3.5 rounded-2xl border-2 ${borderCls} space-y-1.5`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-extrabold text-xs text-slate-700">Soal #${item.num}</span>
+                        <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full ${badgeCls}">${statusIcon}</span>
+                    </div>
+                    <p class="font-bold text-slate-800 text-sm">${item.q}</p>
+                    <div class="flex flex-wrap gap-3 text-xs pt-1">
+                        <div><span class="text-slate-500 font-semibold">Jawabanmu:</span> <strong class="${item.isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${item.userAns}</strong></div>
+                        <div><span class="text-slate-500 font-semibold">Kunci Jawaban:</span> <strong class="text-emerald-800">${item.correctAns}</strong></div>
+                    </div>
+                    <div class="text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-slate-200 mt-1">
+                        <strong class="text-indigo-700">💡 Pembahasan:</strong> ${item.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function confirmBackToMenu() {
+            SoundFX.click();
+            raceState.pausedForModal = true;
+            document.getElementById('confirmResetModal').classList.remove('hidden');
+        }
+
+        function closeConfirmReset() {
+            SoundFX.click();
+            document.getElementById('confirmResetModal').classList.add('hidden');
+            raceState.pausedForModal = false;
+        }
+
+        function backToSetupScreen() {
+            SoundFX.click();
+            raceState.running = false;
+            if (timerInterval) clearInterval(timerInterval);
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+
+            document.getElementById('confirmResetModal').classList.add('hidden');
+            document.getElementById('explanationModal').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('setupScreen').classList.remove('hidden');
+        }
+
+        function replaySameSettings() {
+            SoundFX.click();
+            const deckResult = buildQuestionDeck(gameConfig);
+            if (deckResult.ok) {
+                startRaceWithQuestions(deckResult.questions);
+            } else {
+                backToSetupScreen();
+            }
+        }
+
+        /********************************************************************
+         * 8. SPLASH SCREEN (6 SECONDS) & INITIAL WELCOME POPUP CONTROLLER
+         ********************************************************************/
+        function closeWelcomePopup() {
+            SoundFX.init();
+            SoundFX.click();
+            const popup = document.getElementById('welcomePopupModal');
+            if (popup) popup.classList.add('hidden');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const splash = document.getElementById('splashScreen');
+            const welcomePopup = document.getElementById('welcomePopupModal');
+
+            // Tampilkan Splash Screen selama 6 detik (6000 ms), lalu munculkan Pop Up Awal
+            setTimeout(() => {
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.classList.add('hidden');
+                        if (welcomePopup) {
+                            welcomePopup.classList.remove('hidden');
+                        }
+                    }, 400);
+                }
+            }, 6000);
+        });
+    </script>
+</body>
+  </html>
